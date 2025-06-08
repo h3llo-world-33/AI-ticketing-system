@@ -78,3 +78,4 @@ A smart ticket management system that uses AI to automatically categorize, prior
 - [Mailtrap](https://mailtrap.io) for testing and sending emails during development
 - [AgentKit by inngest](https://agentkit.inngest.com/getting-started/quick-start)
 - [MongoDB](https://www.mongodb.com/)
+- [Nodemailer](https://nodemailer.com/)
