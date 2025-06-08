@@ -62,7 +62,7 @@ A smart ticket management system that uses AI to automatically categorize, prior
 ## Prerequisite
 
 - Node.js (v18 or higher)
-- MongoDB
+- MongoDB (use local or Atlas)
 - Google Gemini API key
 - Mailtrap account (for email testing)
 
@@ -77,3 +77,4 @@ A smart ticket management system that uses AI to automatically categorize, prior
 - [Google AI Studio](https://aistudio.google.com/) for Gemini API Key
 - [Mailtrap](https://mailtrap.io) for testing and sending emails during development
 - [AgentKit by inngest](https://agentkit.inngest.com/getting-started/quick-start)
+- [MongoDB](https://www.mongodb.com/)
