@@ -3,6 +3,8 @@ import { LoginRequestDTO, SignupRequestDTO } from "../dtos/auth.dto";
 import { comparePasswords, hashPassword } from "../utils/hash";
 import { inngest } from "../inngest/client";
 import { generateToken } from "../utils/jwt";
+import { UserRole } from "../constants/enums";
+import { UpdatePasswordDTO, UpdateUserProfileDTO } from "../dtos/user.dto";
 
 
 export const registerUser = async (data: SignupRequestDTO) => {
@@ -51,3 +53,66 @@ export const authenticateUser = async (data: LoginRequestDTO) => {
 
   return token;
 }
+
+
+export const getAllUsers = async () => {
+  const users = await User.find()
+    .select("-password")
+    .sort({ createdAt: -1 });
+
+  // Map to a consistent format with only necessary fields
+  return users.map(user => ({
+    name: user.name,
+    email: user.email,
+    role: user.role,
+    skills: user.skills || [],
+    createdAt: user.createdAt
+  }));
+}
+
+
+export const updateUserProfile = async (userId: string, data: UpdateUserProfileDTO) => {
+  const user = await User.findById(userId);
+  if (!user) throw new Error("User not found");
+
+  // Update only the fields that are provided
+  if (data.skills !== undefined) {
+    user.skills = data.skills;
+  }
+
+  if (data.role !== undefined) {
+    // Optional: Add role validation if needed
+    if (!Object.values(UserRole).includes(data.role)) {
+      throw new Error("Invalid role");
+    }
+    user.role = data.role;
+  }
+
+  await user.save();
+
+  return {
+    email: user.email,
+    role: user.role,
+    skills: user.skills || []
+  };
+};
+
+
+export const updatePassword = async (userId: string, data: UpdatePasswordDTO) => {
+  const { currentPassword, newPassword } = data;
+
+  const user = await User.findById(userId);
+  if (!user) throw new Error("User not found");
+
+  const isPasswordCorrect = await comparePasswords(currentPassword, user.password);
+  if (!isPasswordCorrect) {
+    throw new Error("Current password is incorrect");
+  }
+
+  // Hash and update new password
+  const hashedPassword = await hashPassword(newPassword);
+  user.password = hashedPassword;
+  await user.save();
+
+  return true;
+};
