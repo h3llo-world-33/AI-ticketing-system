@@ -1,4 +1,4 @@
-import mongoose, { Schema } from "mongoose";
+import mongoose, { Document, Schema } from "mongoose";
 import { UserRole } from "../constants/enums";
 
 export interface IUser extends Document {
@@ -32,4 +32,5 @@ const userSchema = new Schema<IUser>({
 { timestamps: true }
 );
 
-export default mongoose.model<IUser>("User", userSchema);
+const User = mongoose.model<IUser>("User", userSchema);
+export default User;

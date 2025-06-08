@@ -37,7 +37,7 @@ export const onUserSignup = inngest.createFunction(
       return { success: true };
 
     } catch (error: any) {
-      console.error("Error running step: ", error.message);
+      console.error("Error running step after Signup: ", error.message);
       return { success: false };
     }
   }
