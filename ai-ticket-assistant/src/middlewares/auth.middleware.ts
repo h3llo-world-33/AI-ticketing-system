@@ -29,15 +29,16 @@ export const verifyToken = (req: Request, res: Response, next: NextFunction) => 
 export const isAdmin = (req: Request, res: Response, next: NextFunction) => {
   // First check if user is authenticated
   if (!req.user) {
-    return res.status(401).json({
+    res.status(401).json({
       success: false,
       message: "Unauthorized: Authentication required"
     });
+    return;
   }
 
   // Then check if user has admin role
   if (req.user.role !== UserRole.ADMIN) {
-    return res.status(403).json({
+    res.status(403).json({
       success: false,
       message: "Forbidden: Admin access required"
     });
