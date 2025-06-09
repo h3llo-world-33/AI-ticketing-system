@@ -22,7 +22,6 @@ const ticketSchema = new Schema<ITicket>({
   ticketNumber: {
     type: Number,
     unique: true,
-    required: true,
   },
   status: {
     type: String,

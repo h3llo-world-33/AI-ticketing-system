@@ -5,7 +5,8 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "dev": "tsx watch src/index.ts"
+    "dev": "tsx watch src/index.ts",
+    "inngest-dev": "npx inngest-cli@latest dev"
   },
   "keywords": [],
   "author": "Soumo Sarkar",

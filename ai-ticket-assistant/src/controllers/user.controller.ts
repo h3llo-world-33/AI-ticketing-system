@@ -122,7 +122,7 @@ export const updateRole = async (
       return;
     }
 
-    const updatedResult = await userService.updateUserRole(user.id, newRole);
+    const updatedResult = await userService.updateUserRole(req.body.userId, newRole);
 
     if (!updatedResult) {
       res.status(400).json({

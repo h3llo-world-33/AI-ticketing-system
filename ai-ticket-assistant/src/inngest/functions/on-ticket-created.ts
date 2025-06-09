@@ -53,24 +53,33 @@ export const onTicketCreated = inngest.createFunction(
       });
 
       const moderator = await step.run("assign-moderator", async () => {
-        let user = await User.findOne({
-          role: UserRole.MODERATOR,
-          skills: {
-            $elemMatch: {
-              $regex: relatedSkills.join("|"),
-              $options: "i"
-            },
-          },
+        const normalize = (str: string) => str.toLowerCase().replace(/[\s.-]/g, "");
+
+        const normalizedSkills = relatedSkills.map(normalize);
+
+        // Fetch all moderators
+        const moderators = await User.find({ role: UserRole.MODERATOR });
+
+        // Try to find a matching moderator
+        let matchedModerator = moderators.find(mod => {
+          return mod.skills?.some(skill => {
+            skill = normalize(skill);
+            return normalizedSkills.some(matchedSkill =>
+              skill.includes(matchedSkill) || matchedSkill.includes(skill)
+            );
+          }
+          );
         });
-        if (!user) {
-          user = await User.findOne({ role: UserRole.ADMIN })
+
+        if (!matchedModerator) {
+          matchedModerator = await User.findOne({ role: UserRole.ADMIN }) ?? undefined;
         }
 
         await Ticket.findByIdAndUpdate(ticketId, {
-          assignedTo: user?._id || null
+          assignedTo: matchedModerator?._id || null
         });
 
-        return user;
+        return matchedModerator;
       });
 
 

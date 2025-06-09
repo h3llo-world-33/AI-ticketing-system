@@ -60,13 +60,31 @@ Ticket information:
 - Title: ${ticket.title}
 - Description: ${ticket.description}`);
 
+    // console.log("AI raw response:", response);
 
-    const raw = response.output[0].context;
+    const outputItem = response?.output?.[0];
+    const raw = outputItem?.content;
+
+    if (!raw || typeof raw !== "string") {
+      throw new Error("AI did not return valid string output.");
+    }
 
     try {
       const match = raw.match(/```json\s*([\s\S]*?)\s*```/i);
       const jsonString = match ? match[1] : raw.trim();
-      return JSON.parse(jsonString);
+      const parsed = JSON.parse(jsonString);
+
+      // Optional: validate parsed structure
+      if (
+        !parsed.summary ||
+        !parsed.priority ||
+        !parsed.helpfulNotes ||
+        !Array.isArray(parsed.relatedSkills)
+      ) {
+        throw new Error("Missing required fields in AI response.");
+      }
+
+      return parsed;
 
     } catch (err: any) {
       console.log("Failed to parse JSON from AI response" + err.message);

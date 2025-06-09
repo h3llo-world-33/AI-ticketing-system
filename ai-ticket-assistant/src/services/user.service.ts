@@ -107,7 +107,7 @@ export const updateUserRole = async (userId: string, role: UserRole) => {
     user.role = role;
     await user.save();
     return user;
-    
+
   } else {
     return false;
   }

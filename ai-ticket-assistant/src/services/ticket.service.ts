@@ -59,7 +59,7 @@ export const getTicketByTicketNumber = async (userId: string, role: UserRole, ti
       .populate("assignedTo", ["name", "email", "_id"]);
   } else {
     ticket = await Ticket.findOne({ ticketNumber, createdBy: userId })
-      .select("title description status createdAt")
+      .select("title description ticketNumber status createdAt")
   }
 
   if (!ticket) {

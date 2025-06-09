@@ -7,9 +7,9 @@ const router = Router();
 
 // Protected routes - require authentication
 router.put("/profile", verifyToken, updateProfile);
-router.put("/password", verifyToken, updatePassword);
+router.patch("/password", verifyToken, updatePassword);
 
-router.put("/role", verifyToken, requireUserRole(UserRole.ADMIN), updateRole);
+router.patch("/role", verifyToken, requireUserRole(UserRole.ADMIN), updateRole);
 router.get("/", verifyToken, requireUserRole(UserRole.ADMIN), getUsers);
 
 export default router;

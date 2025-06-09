@@ -1,8 +1,7 @@
 // routes/ticket.routes.ts
 import express from "express";
-import { UserRole } from "../constants/enums";
+import { verifyToken } from "../middlewares/auth.middleware";
 import { canAccessTicketByNumber } from "../middlewares/ticket.middleware";
-import { requireUserRole, verifyToken } from "../middlewares/auth.middleware";
 import { createTicket, getTicketByNumber, getTickets } from "../controllers/ticket.controller";
 
 const router = express.Router();
