@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import jwt from "jsonwebtoken";
 import * as userService from "../services/user.service";
 import { LoginRequestDTO, LoginResponseDTO, SignupRequestDTO, SignupResponseDTO } from "../dtos/auth.dto";
 
@@ -76,5 +77,21 @@ export const logout = async (_req: Request, res: Response) => {
       success: false,
       message: "Logout failed"
     });
+  }
+};
+
+
+export const verifyAuthenticated = (req: Request, res: Response) => {
+  const token = req.cookies.token;
+  if (!token) {
+    res.status(401).json({ authenticated: false });
+    return;
+  }
+
+  try {
+    const user = jwt.verify(token, process.env.JWT_SECRET!);
+    res.status(200).json({ authenticated: true, user });
+  } catch (err) {
+    res.status(401).json({ authenticated: false });
   }
 };

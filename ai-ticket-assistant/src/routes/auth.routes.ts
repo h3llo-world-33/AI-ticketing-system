@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { signup, login, logout } from "../controllers/auth.controller";
+import { signup, login, logout, verifyAuthenticated } from "../controllers/auth.controller";
 import { verifyToken } from "../middlewares/auth.middleware";
 
 const router = Router();
@@ -12,5 +12,7 @@ router.post("/login", login);
 
 // Logout - Protected
 router.post("/logout", verifyToken, logout);
+
+router.get("/verify", verifyAuthenticated);
 
 export default router;
