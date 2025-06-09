@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import * as userService from "../services/user.service";
 import { LoginRequestDTO, LoginResponseDTO, SignupRequestDTO, SignupResponseDTO } from "../dtos/auth.dto";
-import { AuthenticatedRequest } from "../types/custom";
+
 
 export const signup = async (
   req: Request<{}, {}, SignupRequestDTO>,

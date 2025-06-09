@@ -1,3 +1,4 @@
+import { ObjectId } from "mongoose";
 import User from "../models/user.model";
 import { LoginRequestDTO, SignupRequestDTO } from "../dtos/auth.dto";
 import { comparePasswords, hashPassword } from "../utils/hash";
@@ -16,6 +17,10 @@ export const registerUser = async (data: SignupRequestDTO) => {
   const hashedPassword = await hashPassword(password);
   const newUser = await User.create({ name, email, password: hashedPassword, skills });
 
+  if (!newUser) {
+    throw new Error("User registration failed");
+  }
+
   // Send event to Inngest
   await inngest.send({
     name: "user/signup",
@@ -25,7 +30,7 @@ export const registerUser = async (data: SignupRequestDTO) => {
   });
 
   const token = generateToken({
-    id: newUser._id.toString(),
+    id: (newUser._id as ObjectId).toString(),
     email: newUser.email,
     role: newUser.role,
   });
@@ -46,7 +51,7 @@ export const authenticateUser = async (data: LoginRequestDTO) => {
   }
 
   const token = generateToken({
-    id: user._id.toString(),
+    id: (user._id as ObjectId).toString(),
     email: user.email,
     role: user.role,
   });

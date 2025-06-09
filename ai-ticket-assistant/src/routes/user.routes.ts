@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { updateProfile, updatePassword, getUsers } from "../controllers/user.controller";
-import { isAdmin, verifyToken } from "../middlewares/auth.middleware";
+import { requireUserRole, verifyToken } from "../middlewares/auth.middleware";
+import { UserRole } from "../constants/enums";
 
 const router = Router();
 
@@ -8,6 +9,6 @@ const router = Router();
 router.put("/profile", verifyToken, updateProfile);
 router.put("/password", verifyToken, updatePassword);
 
-router.get("/", verifyToken, isAdmin, getUsers);
+router.get("/", verifyToken, requireUserRole(UserRole.ADMIN), getUsers);
 
 export default router;
