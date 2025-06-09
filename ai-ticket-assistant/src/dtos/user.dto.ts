@@ -1,8 +1,8 @@
 import { UserRole } from "../constants/enums";
 
 export interface UpdateUserProfileDTO {
+  name?: string;
   skills?: string[];
-  role?: UserRole;
 }
 
 export interface UpdatePasswordDTO {

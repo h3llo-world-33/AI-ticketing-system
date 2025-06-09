@@ -1,10 +1,10 @@
 import { ObjectId } from "mongoose";
 import User from "../models/user.model";
-import { LoginRequestDTO, SignupRequestDTO } from "../dtos/auth.dto";
-import { comparePasswords, hashPassword } from "../utils/hash";
 import { inngest } from "../inngest/client";
 import { generateToken } from "../utils/jwt";
 import { UserRole } from "../constants/enums";
+import { LoginRequestDTO, SignupRequestDTO } from "../dtos/auth.dto";
+import { comparePasswords, hashPassword } from "../utils/hash";
 import { UpdatePasswordDTO, UpdateUserProfileDTO } from "../dtos/user.dto";
 
 
@@ -81,26 +81,37 @@ export const updateUserProfile = async (userId: string, data: UpdateUserProfileD
   if (!user) throw new Error("User not found");
 
   // Update only the fields that are provided
-  if (data.skills !== undefined) {
-    user.skills = data.skills;
-  }
-
-  if (data.role !== undefined) {
-    // Optional: Add role validation if needed
-    if (!Object.values(UserRole).includes(data.role)) {
-      throw new Error("Invalid role");
-    }
-    user.role = data.role;
-  }
+  if (data.name !== undefined && data.name !== "") user.name = data.name;
+  if (data.skills !== undefined && data.skills.length > 0 ) user.skills = data.skills;
 
   await user.save();
 
   return {
+    name: user.name,
     email: user.email,
     role: user.role,
     skills: user.skills || []
   };
 };
+
+
+export const updateUserRole = async (userId: string, role: UserRole) => {
+  const user = await User.findById(userId);
+  if (!user) throw new Error("User not found");
+
+  if (role !== undefined && user.role !== role) {
+    // Optional: Add role validation if needed
+    if (!Object.values(UserRole).includes(role)) {
+      throw new Error("Invalid role");
+    }
+    user.role = role;
+    await user.save();
+    return user;
+    
+  } else {
+    return false;
+  }
+}
 
 
 export const updatePassword = async (userId: string, data: UpdatePasswordDTO) => {

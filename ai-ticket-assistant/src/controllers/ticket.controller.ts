@@ -45,7 +45,16 @@ export const createTicket = async (
 
 export const getTickets = async (req: Request, res: Response) => {
   try {
-    const tickets = await ticketService.getAllTickets();
+    const { user } = req;
+    if (!user?.id) {
+      res.status(401).json({
+        success: false,
+        message: "Unauthorized: Access denied"
+      });
+      return;
+    }
+
+    const tickets = await ticketService.getAllTickets(user.id, user.role);
 
     res.status(200).json({
       success: true,
@@ -68,6 +77,7 @@ export const getTicketByNumber = async (req: Request, res: Response<TicketRespon
         success: false,
         message: "Unauthorized: Access denied"
       });
+      return;
     }
 
     const ticketNumber = parseInt(req.params.ticketNumber);
@@ -77,9 +87,10 @@ export const getTicketByNumber = async (req: Request, res: Response<TicketRespon
         success: false,
         message: "Invalid ticket number"
       });
+      return;
     }
 
-    const ticket = await ticketService.getTicketByTicketNumber(ticketNumber);
+    const ticket = await ticketService.getTicketByTicketNumber(user.id, user.role, ticketNumber);
 
     res.status(200).json({
       success: true,

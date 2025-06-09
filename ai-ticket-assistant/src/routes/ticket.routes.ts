@@ -19,7 +19,6 @@ router.get(
 router.get(
   "/",
   verifyToken,
-  requireUserRole(UserRole.ADMIN, UserRole.MODERATOR),
   getTickets
 );
 

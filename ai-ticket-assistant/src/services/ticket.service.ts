@@ -1,6 +1,7 @@
-import Ticket from "../models/ticket.model";
+import Ticket, { ITicket } from "../models/ticket.model";
 import { CreateTicketDTO } from "../dtos/ticket.dto";
 import { inngest } from "../inngest/client";
+import { UserRole } from "../constants/enums";
 
 
 export const createTicket = async (userId: string, data: CreateTicketDTO) => {
@@ -32,17 +33,34 @@ export const createTicket = async (userId: string, data: CreateTicketDTO) => {
 };
 
 
-export const getAllTickets = async () => {
-  const tickets = await Ticket.find({})
-    .sort({ createdAt: -1 })
-    .lean();
+export const getAllTickets = async (userId: string, role: UserRole) => {
+  let tickets: ITicket[] = [];
+
+  if (role !== UserRole.USER) {
+    tickets = await Ticket.find()
+      .populate("assignedTo", ["name", "email", "_id"])
+      .sort({ createdAt: -1 });
+
+  } else {
+    tickets = await Ticket.find({ createdBy: userId })
+      .select("title description status createdAt")
+      .sort({ createdAt: -1 });
+  }
 
   return tickets;
 };
 
 
-export const getTicketByTicketNumber = async (ticketNumber: number) => {
-  const ticket = await Ticket.findOne({ ticketNumber });
+export const getTicketByTicketNumber = async (userId: string, role: UserRole, ticketNumber: number) => {
+  let ticket: ITicket | null;
+
+  if (role !== UserRole.USER) {
+    ticket = await Ticket.findOne({ ticketNumber })
+      .populate("assignedTo", ["name", "email", "_id"]);
+  } else {
+    ticket = await Ticket.findOne({ ticketNumber, createdBy: userId })
+      .select("title description status createdAt")
+  }
 
   if (!ticket) {
     throw new Error(`#TICKET-${ticketNumber} not found`);
