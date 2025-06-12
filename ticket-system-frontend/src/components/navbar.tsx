@@ -1,42 +1,33 @@
 import { Link, useNavigate } from "react-router";
-import { useState, useEffect } from "react";
-import type { User } from "../types";
+import { useEffect } from "react";
 import { verifyAuth, logout as logoutUser } from "../utils/auth";
+import { useAuthStore } from "../store";
 
 export default function Navbar() {
-  const [user, setUser] = useState<User | null>(null);
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const { user, isAuthenticated, setAuth } = useAuthStore();
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Get user from localStorage
-    const storedUser = localStorage.getItem("user");
-    if (storedUser) {
-      try {
-        setUser(JSON.parse(storedUser));
-      } catch (err) {
-        console.error("Error parsing user from localStorage:", err);
-      }
-    }
-
     // Verify authentication status with backend
     const checkAuth = async () => {
       const { authenticated, user: authUser } = await verifyAuth();
-      setIsAuthenticated(authenticated);
       if (authenticated && authUser) {
-        setUser(authUser);
+        setAuth(authUser, authUser.token || null);
       }
     };
 
     checkAuth();
-  }, []);
+  }, [setAuth]);
 
-  const logout = async () => {
-    const success = await logoutUser();
-    if (success) {
-      setUser(null);
-      setIsAuthenticated(false);
-      navigate("/login");
+  const handleLogout = async () => {
+    try {
+      const success = await logoutUser();
+      if (success) {
+        // logout();
+        navigate("/login");
+      }
+    } catch (error) {
+      console.error("Logout failed:", error);
     }
   };
 
@@ -65,7 +56,7 @@ export default function Navbar() {
                 Admin
               </Link>
             ) : null}
-            <button onClick={logout} className="btn btn-sm">
+            <button onClick={handleLogout} className="btn btn-sm">
               Logout
             </button>
           </>

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { getAuthToken } from "../utils/auth";
 import type { User } from "../types";
+import { useAuthStore } from "../store";
 
 interface UserFormData {
   role: string;
@@ -13,16 +13,14 @@ const Admin = () => {
   const [editingUser, setEditingUser] = useState<string | null>(null);
   const [formData, setFormData] = useState<UserFormData>({ role: "", skills: "" });
   const [searchQuery, setSearchQuery] = useState("");
+  const { token } = useAuthStore();
 
   useEffect(() => {
     fetchUsers();
-  }, []);
+  }, [token]);
 
   const fetchUsers = async () => {
     try {
-      // Get token from localStorage as a fallback
-      const token = getAuthToken();
-      
       const res = await fetch(`${import.meta.env.VITE_API_URL}/auth/users`, {
         headers: {
           ...(token && { "Authorization": `Bearer ${token}` })
@@ -51,9 +49,6 @@ const Admin = () => {
 
   const handleUpdate = async () => {
     try {
-      // Get token from localStorage as a fallback
-      const token = getAuthToken();
-      
       const res = await fetch(
         `${import.meta.env.VITE_API_URL}/auth/update-user`,
         {

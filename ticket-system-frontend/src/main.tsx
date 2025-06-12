@@ -9,17 +9,23 @@ import TicketDetails from './pages/ticket'
 import Login from './pages/login'
 import Signup from './pages/signup'
 import Admin from './pages/admin'
+import Navbar from './components/navbar'
+import { useAuthStore } from './store'
+
+// Rehydrate Zustand from localStorage before rendering
+useAuthStore.getState().rehydrate();
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <BrowserRouter>
+      <Navbar />
       <Routes>
         <Route path='/' element={
           <CheckAuth protectedRoute={true}>
             <Tickets />
           </CheckAuth>
         } />
-        <Route path='/tickets/:id' element={
+        <Route path='/tickets/:ticketNumber' element={
           <CheckAuth protectedRoute={true}>
             <TicketDetails />
           </CheckAuth>

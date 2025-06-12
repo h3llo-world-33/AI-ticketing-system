@@ -2,32 +2,19 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router";
 import ReactMarkdown from "react-markdown";
 import type { Ticket } from "../types";
+import { useAuthStore } from "../store";
 
 const TicketDetails = () => {
-  const { id } = useParams();
+  const { ticketNumber } = useParams();
   const [ticket, setTicket] = useState<Ticket | null>(null);
   const [loading, setLoading] = useState(true);
+  const { token } = useAuthStore();
 
   useEffect(() => {
     const fetchTicket = async () => {
       try {
-        // Get token from localStorage as a fallback
-        const user = localStorage.getItem("user");
-        let token = "";
-        if (user) {
-          try {
-            // Some backends store token in user object
-            const userData = JSON.parse(user);
-            if (userData.token) {
-              token = userData.token;
-            }
-          } catch (err) {
-            console.error("Error parsing user data:", err);
-          }
-        }
-
         const res = await fetch(
-          `${import.meta.env.VITE_API_URL}/tickets/${id}`,
+          `${import.meta.env.VITE_API_URL}/tickets/${ticketNumber}`,
           {
             headers: {
               ...(token && { "Authorization": `Bearer ${token}` })
@@ -50,7 +37,7 @@ const TicketDetails = () => {
     };
 
     fetchTicket();
-  }, [id]);
+  }, [ticketNumber, token]);
 
   if (loading)
     return <div className="text-center mt-10">Loading ticket details...</div>;
@@ -66,7 +53,7 @@ const TicketDetails = () => {
 
         {ticket.ticketNumber && (
           <p>
-            <strong>Ticket #:</strong> {ticket.ticketNumber}
+            <strong>Ticket #{ticket.ticketNumber}</strong>
           </p>
         )}
 

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router";
 import type { Ticket } from "../types";
+import { useAuthStore } from "../store";
 
 interface TicketForm {
   title: string;
@@ -11,11 +12,15 @@ const Tickets = () => {
   const [form, setForm] = useState<TicketForm>({ title: "", description: "" });
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [loading, setLoading] = useState(false);
+  const { token } = useAuthStore();
 
   const fetchTickets = async () => {
     try {
       const res = await fetch(`${import.meta.env.VITE_API_URL}/tickets`, {
         credentials: "include", // Send cookies for authentication
+        headers: {
+          ...(token && { "Authorization": `Bearer ${token}` })
+        },
         method: "GET",
       });
       const data = await res.json();
@@ -27,7 +32,7 @@ const Tickets = () => {
 
   useEffect(() => {
     fetchTickets();
-  }, []);
+  }, [token]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -37,21 +42,6 @@ const Tickets = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      // Get token from localStorage as a fallback
-      const user = localStorage.getItem("user");
-      let token = "";
-      if (user) {
-        try {
-          // Some backends store token in user object
-          const userData = JSON.parse(user);
-          if (userData.token) {
-            token = userData.token;
-          }
-        } catch (err) {
-          console.error("Error parsing user data:", err);
-        }
-      }
-
       const res = await fetch(`${import.meta.env.VITE_API_URL}/tickets`, {
         method: "POST",
         headers: {
@@ -110,7 +100,7 @@ const Tickets = () => {
           <Link
             key={ticket._id}
             className="card shadow-md p-4 bg-gray-800"
-            to={`/tickets/${ticket._id}`}
+            to={`/tickets/${ticket.ticketNumber}`}
           >
             <h3 className="font-bold text-lg">{ticket.title}</h3>
             <p className="text-sm">{ticket.description}</p>

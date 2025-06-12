@@ -1,11 +1,13 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
 import type { SignupForm } from "../types";
+import { useAuthStore } from "../store";
 
 const Signup = () => {
   const [form, setForm] = useState<SignupForm>({ name: "", email: "", password: "" });
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { setAuth } = useAuthStore();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -30,7 +32,8 @@ const Signup = () => {
       const data = await res.json();
 
       if (res.ok) {
-        localStorage.setItem("user", JSON.stringify(data.user));
+        // Store user data in Zustand store
+        setAuth(data.user, data.token);
         navigate("/");
       } else {
         alert(data.message || "Signup failed");

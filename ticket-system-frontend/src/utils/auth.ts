@@ -1,47 +1,16 @@
 import type { User } from "../types";
+import { useAuthStore } from "../store";
 
 /**
  * Authentication utility functions
  */
 
 /**
- * Get the current user from localStorage
- */
-export const getCurrentUser = (): User | null => {
-  const userStr = localStorage.getItem("user");
-  if (!userStr) return null;
-  
-  try {
-    return JSON.parse(userStr) as User;
-  } catch (err) {
-    console.error("Error parsing user from localStorage:", err);
-    return null;
-  }
-};
-
-/**
- * Get auth token from user object in localStorage
- */
-export const getAuthToken = (): string => {
-  const userStr = localStorage.getItem("user");
-  if (!userStr) return "";
-  
-  try {
-    const userData = JSON.parse(userStr);
-    return userData.token || "";
-  } catch (err) {
-    console.error("Error getting token:", err);
-    return "";
-  }
-};
-
-/**
  * Verify authentication status with the backend
  */
 export const verifyAuth = async (): Promise<{authenticated: boolean, user: User | null}> => {
   try {
-    // Get token for fallback
-    const token = getAuthToken();
+    const { token } = useAuthStore.getState();
     
     const res = await fetch(`${import.meta.env.VITE_API_URL}/auth/verify`, {
       method: "GET",
@@ -54,8 +23,8 @@ export const verifyAuth = async (): Promise<{authenticated: boolean, user: User 
     const data = await res.json();
     
     if (data.authenticated && data.user) {
-      // Update localStorage with latest user data
-      localStorage.setItem("user", JSON.stringify(data.user));
+      // Update auth store with latest user data
+      useAuthStore.getState().setAuth(data.user, data.user.token || token);
       return { authenticated: true, user: data.user };
     }
     
@@ -71,20 +40,24 @@ export const verifyAuth = async (): Promise<{authenticated: boolean, user: User 
  */
 export const logout = async (): Promise<boolean> => {
   try {
-    // Get token for fallback
-    const token = getAuthToken();
+    const { token } = useAuthStore.getState();
     
     // Call logout endpoint to clear cookies
-    await fetch(`${import.meta.env.VITE_API_URL}/auth/logout`, {
+    const response = await fetch(`${import.meta.env.VITE_API_URL}/auth/logout`, {
       method: "POST",
       headers: {
+        "Content-Type": "application/json",
         ...(token && { "Authorization": `Bearer ${token}` })
       },
-      credentials: "include",
+      credentials: "include", // Important for cookie operations
     });
     
-    // Clear local storage
-    localStorage.removeItem("user");
+    if (!response.ok) {
+      throw new Error(`Logout failed with status: ${response.status}`);
+    }
+    
+    // Clear auth store
+    useAuthStore.getState().logout();
     return true;
   } catch (err) {
     console.error("Logout failed:", err);

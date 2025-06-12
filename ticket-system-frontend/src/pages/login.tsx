@@ -1,11 +1,13 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
 import type { LoginForm } from "../types";
+import { useAuthStore } from "../store";
 
 const Login = () => {
   const [form, setForm] = useState<LoginForm>({ email: "", password: "" });
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { setAuth } = useAuthStore();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -27,8 +29,8 @@ const Login = () => {
       const data = await res.json();
 
       if (res.ok) {
-        // Store user data in localStorage for UI purposes
-        localStorage.setItem("user", JSON.stringify(data.user));
+        // Store user data in Zustand store
+        setAuth(data.user, data.token);
         navigate("/");
       } else {
         alert(data.message || "Login failed");
