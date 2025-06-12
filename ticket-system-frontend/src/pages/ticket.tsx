@@ -63,7 +63,7 @@ const TicketDetails = () => {
       <div className="card bg-gray-800 shadow p-4 space-y-4">
         <h3 className="text-xl font-semibold">{ticket.title}</h3>
         <p>{ticket.description}</p>
-        
+
         {ticket.ticketNumber && (
           <p>
             <strong>Ticket #:</strong> {ticket.ticketNumber}
@@ -83,7 +83,7 @@ const TicketDetails = () => {
               </p>
             )}
 
-            {ticket.relatedSkills?.length > 0 && (
+            {ticket.relatedSkills !== undefined && ticket.relatedSkills.length > 0 && (
               <p>
                 <strong>Related Skills:</strong>{" "}
                 {ticket.relatedSkills.join(", ")}

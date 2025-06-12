@@ -3,7 +3,9 @@ export interface User {
   _id: string;
   email: string;
   name?: string;
-  role: 'user' | 'admin';
+  role: 'user' | 'admin' | 'moderator';
+  skills?: string[];
+  token?: string; // Added token field for backend compatibility
   createdAt: string;
   updatedAt: string;
 }
