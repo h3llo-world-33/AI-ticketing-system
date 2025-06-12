@@ -11,7 +11,7 @@ import { useAuthStore } from "../store";
 export const verifyAuth = async (): Promise<{authenticated: boolean, user: User | null}> => {
   try {
     const { token } = useAuthStore.getState();
-    
+
     const res = await fetch(`${import.meta.env.VITE_API_URL}/auth/verify`, {
       method: "GET",
       headers: {
@@ -21,13 +21,13 @@ export const verifyAuth = async (): Promise<{authenticated: boolean, user: User 
     });
 
     const data = await res.json();
-    
+
     if (data.authenticated && data.user) {
       // Update auth store with latest user data
       useAuthStore.getState().setAuth(data.user, data.user.token || token);
       return { authenticated: true, user: data.user };
     }
-    
+
     return { authenticated: false, user: null };
   } catch (err) {
     console.error("Auth verification failed:", err);
@@ -41,7 +41,7 @@ export const verifyAuth = async (): Promise<{authenticated: boolean, user: User 
 export const logout = async (): Promise<boolean> => {
   try {
     const { token } = useAuthStore.getState();
-    
+
     // Call logout endpoint to clear cookies
     const response = await fetch(`${import.meta.env.VITE_API_URL}/auth/logout`, {
       method: "POST",
@@ -51,16 +51,14 @@ export const logout = async (): Promise<boolean> => {
       },
       credentials: "include", // Important for cookie operations
     });
-    
-    if (!response.ok) {
-      throw new Error(`Logout failed with status: ${response.status}`);
-    }
-    
-    // Clear auth store
+
+    // Always clear local state, even if the API call fails
     useAuthStore.getState().logout();
     return true;
   } catch (err) {
     console.error("Logout failed:", err);
-    return false;
+    // Still clear local state on error
+    useAuthStore.getState().logout();
+    return true;
   }
 };

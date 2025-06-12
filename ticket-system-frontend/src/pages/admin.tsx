@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import type { User } from "../types";
 import { useAuthStore } from "../store";
 
@@ -17,31 +18,39 @@ const Admin = () => {
   const { token } = useAuthStore();
 
   useEffect(() => {
-    fetchUsers();
+    if (token) {
+      fetchUsers();
+    }
   }, [token]);
 
   const fetchUsers = async () => {
+    setLoading(true);
     try {
-      const data = await fetch(`${import.meta.env.VITE_API_URL}/users`, {
+      // Fix API endpoint
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/users`, {
         headers: {
           ...(token && { "Authorization": `Bearer ${token}` })
         },
-        credentials: "include", // Send cookies for authentication
+        credentials: "include",
       });
-      const response = await data.json();
-      if (data.ok) {
-        setUsers(response.data);
-        setFilteredUsers(response.data);
+      const response = await res.json();
+      if (res.ok) {
+        const userData = response.data || [];
+        setUsers(userData);
+        setFilteredUsers(userData);
       } else {
-        console.error(response.error || response.message);
+        alert(response.error || response.message || "Failed to fetch users");
       }
     } catch (err) {
+      alert("Error connecting to server");
       console.error("Error fetching users", err);
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleEditClick = (user: User) => {
-    setEditingUser(user.email);
+    setEditingUser(user._id);
     setFormData({
       role: user.role,
       skills: user.skills?.join(", ") || "",
@@ -51,23 +60,51 @@ const Admin = () => {
   const handleSave = async () => {
     setLoading(true);
     try {
-      // First update role if changed
-      const originalUser = users.find(u => u.email === editingUser);
-      if (originalUser && originalUser.role !== formData.role) {
-        await updateRole(editingUser!, formData.role);
+      const originalUser = users.find(u => u._id === editingUser);
+      if (!originalUser) {
+        throw new Error("User not found");
       }
 
-      // Then update skills if changed
-      const originalSkills = originalUser?.skills?.join(", ") || "";
-      if (originalSkills !== formData.skills) {
-        await updateSkills(editingUser!, formData.skills);
+      // Update role if changed
+      if (originalUser.role !== formData.role) {
+        await updateRole(originalUser._id, formData.role);
       }
+
+      // Update skills if changed
+      const originalSkills = originalUser.skills?.join(", ") || "";
+      if (originalSkills !== formData.skills) {
+        await updateSkills(originalUser._id, formData.skills);
+      }
+
+      // Update the user in the local state immediately for UI feedback
+      const updatedUsers = users.map(user => {
+        if (user._id === editingUser) {
+          return {
+            ...user,
+            role: formData.role as User["role"],
+            skills: formData.skills
+              .split(",")
+              .map(skill => skill.trim())
+              .filter(Boolean)
+          };
+        }
+        return user;
+      });
+
+      setUsers(updatedUsers);
+      setFilteredUsers(
+        updatedUsers.filter(user =>
+          user.email.toLowerCase().includes(searchQuery.toLowerCase())
+        )
+      );
 
       setEditingUser(null);
       setFormData({ role: "", skills: "" });
-      fetchUsers();
-    } catch (err) {
-      console.error("Update failed", err);
+
+      // Success message
+      alert("User updated successfully");
+    } catch (err: any) {
+      alert("Failed to update user: " + (err.message || "Unknown error"));
     } finally {
       setLoading(false);
     }
@@ -75,7 +112,7 @@ const Admin = () => {
 
   const updateRole = async (userId: string, role: string) => {
     const res = await fetch(
-      `${import.meta.env.VITE_API_URL}/api/users/role`,
+      `${import.meta.env.VITE_API_URL}/users/role`,
       {
         method: "PATCH",
         headers: {
@@ -90,41 +127,42 @@ const Admin = () => {
       }
     );
 
-    const data = await res.json();
     if (!res.ok) {
+      const data = await res.json();
       throw new Error(data.error || data.message || "Failed to update role");
     }
-    return data;
+
+    return true;
   };
 
-  const updateSkills = async (email: string, skillsString: string) => {
+  const updateSkills = async (userId: string, skillsString: string) => {
     const skills = skillsString
       .split(",")
       .map((skill) => skill.trim())
       .filter(Boolean);
 
-    if (skills.length === 0) return true;
-
     const res = await fetch(
-      `${import.meta.env.VITE_API_URL}/api/users/profile`,
+      `${import.meta.env.VITE_API_URL}/users/skills`,
       {
-        method: "PUT",
+        method: "PATCH",
         headers: {
           "Content-Type": "application/json",
           ...(token && { "Authorization": `Bearer ${token}` })
         },
         credentials: "include",
         body: JSON.stringify({
+          userId,
           skills
         }),
       }
     );
 
-    const data = await res.json();
     if (!res.ok) {
+      const data = await res.json();
       throw new Error(data.error || data.message || "Failed to update skills");
     }
-    return data;
+
+    return true;
   };
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -136,15 +174,34 @@ const Admin = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto mt-10">
+    <div className="max-w-4xl mx-auto mt-10 sm:px-6 px-3">
       <h1 className="text-2xl font-bold mb-6">Admin Panel - Manage Users</h1>
-      <input
-        type="text"
-        className="input input-bordered w-full mb-6"
-        placeholder="Search by email"
-        value={searchQuery}
-        onChange={handleSearch}
-      />
+
+      <div className="flex justify-between mb-4">
+        <input
+          type="text"
+          className="input input-bordered w-full mr-2"
+          placeholder="Search by email"
+          value={searchQuery}
+          onChange={handleSearch}
+        />
+        <button
+          className="btn btn-outline"
+          onClick={fetchUsers}
+          disabled={loading}
+        >
+          Refresh
+        </button>
+      </div>
+
+      {loading && !editingUser && (
+        <div className="text-center p-4">Loading users...</div>
+      )}
+
+      {!loading && filteredUsers.length === 0 && (
+        <div className="text-center p-4">No users found</div>
+      )}
+
       {filteredUsers.map((user) => (
         <div
           key={user._id}
@@ -163,7 +220,7 @@ const Admin = () => {
               : "N/A"}
           </p>
 
-          {editingUser === user.email ? (
+          {editingUser === user._id ? (
             <div className="mt-4 space-y-2">
               <select
                 className="select select-bordered w-full"

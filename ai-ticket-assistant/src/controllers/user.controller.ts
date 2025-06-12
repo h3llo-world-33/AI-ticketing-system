@@ -1,7 +1,6 @@
 import { Request, Response } from "express";
 import * as userService from "../services/user.service";
 import { UpdatePasswordDTO, UpdateUserProfileDTO } from "../dtos/user.dto";
-import { AuthenticatedRequest } from "../types/custom";
 import { ResponseDTO } from "../dtos/common.dto";
 import { UserRole } from "../constants/enums";
 
@@ -29,7 +28,7 @@ export const getUsers = async (
 }
 
 
-export const updateProfile = async (
+export const updateMyProfile = async (
   req: Request,
   res: Response<ResponseDTO>
 ) => {
@@ -43,7 +42,7 @@ export const updateProfile = async (
       return;
     }
 
-    const updatedUser = await userService.updateUserProfile(
+    const updatedUser = await userService.updateProfile(
       user.id,
       req.body as UpdateUserProfileDTO
     );
@@ -99,13 +98,14 @@ export const updatePassword = async (
 };
 
 
-export const updateRole = async (
+// Controller for admin to update user skills
+export const updateUserRole = async (
   req: Request,
   res: Response<ResponseDTO>
 ) => {
   const { user } = req;
   try {
-    if (!user?.id) {
+    if (!user?.id || user.role !== UserRole.ADMIN) {
       res.status(401).json({
         success: false,
         message: "Unauthorized Access"
@@ -113,21 +113,22 @@ export const updateRole = async (
       return;
     }
 
-    const newRole = req.body.role as UserRole;
-    if (user.role === newRole) {
+    const { userId, role } = req.body;
+    if (!userId || !role) {
       res.status(400).json({
         success: false,
-        message: "Provide different role than the present one"
-      })
+        message: "User ID and role are required"
+      });
       return;
     }
 
-    const updatedResult = await userService.updateUserRole(req.body.userId, newRole);
+    const newRole = role as UserRole;
+    const updatedResult = await userService.updateRole(userId, newRole);
 
     if (!updatedResult) {
       res.status(400).json({
         success: false,
-        message: "User role remains same as previous"
+        message: "User role update failed or remains the same"
       });
     } else {
       res.status(200).json({
@@ -140,6 +141,48 @@ export const updateRole = async (
     res.status(500).json({
       success: false,
       message: "Failed to update role of the user",
+      error: error.message,
+    });
+  }
+};
+
+
+// Controller for admin to update user skills
+export const updateUserSkills = async (
+  req: Request,
+  res: Response<ResponseDTO>
+) => {
+  const { user } = req;
+  try {
+    if (!user?.id || user.role !== UserRole.ADMIN) {
+      res.status(401).json({
+        success: false,
+        message: "Unauthorized Access"
+      });
+      return;
+    }
+
+    const { userId, skills } = req.body;
+    if (!userId || !skills) {
+      res.status(400).json({
+        success: false,
+        message: "User ID and skills are required"
+      });
+      return;
+    }
+
+    const updatedUser = await userService.updateSkills(userId, skills);
+
+    res.status(200).json({
+      success: true,
+      message: "User skills updated successfully",
+      data: updatedUser
+    });
+
+  } catch (error: any) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to update user skills",
       error: error.message,
     });
   }

@@ -10,14 +10,21 @@ export default function Navbar() {
   useEffect(() => {
     // Verify authentication status with backend
     const checkAuth = async () => {
-      const { authenticated, user: authUser } = await verifyAuth();
-      if (authenticated && authUser) {
-        setAuth(authUser, authUser.token || null);
+      try {
+        const { authenticated, user: authUser } = await verifyAuth();
+        if (authenticated && authUser) {
+          setAuth(authUser, authUser.token || null);
+        } else if(!authenticated) {
+          // Clear auth state if not authenticated
+          logout();
+        }
+      } catch (error) {
+        console.error("Auth verification failed:", error);
       }
     };
 
     checkAuth();
-  }, [setAuth]);
+  }, [setAuth, logout]);
 
   const handleLogout = async () => {
     try {

@@ -76,7 +76,7 @@ export const getAllUsers = async () => {
 }
 
 
-export const updateUserProfile = async (userId: string, data: UpdateUserProfileDTO) => {
+export const updateProfile = async (userId: string, data: UpdateUserProfileDTO) => {
   const user = await User.findById(userId);
   if (!user) throw new Error("User not found");
 
@@ -95,7 +95,7 @@ export const updateUserProfile = async (userId: string, data: UpdateUserProfileD
 };
 
 
-export const updateUserRole = async (userId: string, role: UserRole) => {
+export const updateRole = async (userId: string, role: UserRole) => {
   const user = await User.findById(userId);
   if (!user) throw new Error("User not found");
 
@@ -112,6 +112,22 @@ export const updateUserRole = async (userId: string, role: UserRole) => {
     return false;
   }
 }
+
+
+export const updateSkills = async (userId: string, skills: string[]) => {
+  const user = await User.findById(userId);
+  if (!user) throw new Error("User not found");
+
+  user.skills = skills;
+  await user.save();
+
+  return {
+    name: user.name,
+    email: user.email,
+    role: user.role,
+    skills: user.skills || []
+  };
+};
 
 
 export const updatePassword = async (userId: string, data: UpdatePasswordDTO) => {

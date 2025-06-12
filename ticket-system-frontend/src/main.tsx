@@ -10,10 +10,10 @@ import Login from './pages/login'
 import Signup from './pages/signup'
 import Admin from './pages/admin'
 import Navbar from './components/navbar'
-import { useAuthStore } from './store'
+// import { useAuthStore } from './store'
 
 // Rehydrate Zustand from localStorage before rendering
-useAuthStore.getState().rehydrate();
+// useAuthStore.getState().rehydrate();
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

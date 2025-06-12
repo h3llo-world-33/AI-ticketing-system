@@ -15,8 +15,8 @@ export interface Ticket {
   _id: string;
   title: string;
   description: string;
-  status: 'open' | 'in-progress' | 'resolved' | 'closed';
-  priority?: 'low' | 'medium' | 'high' | 'critical';
+  status: 'TODO' | 'IN_PROGRESS' | 'IN_REVIEW' | 'DONE' | 'BLOCKED';
+  priority?: 'Low' | 'Medium' | 'High' | 'Critical';
   ticketNumber?: string;
   relatedSkills?: string[];
   helpfulNotes?: string;
