@@ -13,6 +13,7 @@ const Admin = () => {
   const [editingUser, setEditingUser] = useState<string | null>(null);
   const [formData, setFormData] = useState<UserFormData>({ role: "", skills: "" });
   const [searchQuery, setSearchQuery] = useState("");
+  const [loading, setLoading] = useState(false);
   const { token } = useAuthStore();
 
   useEffect(() => {
@@ -21,18 +22,18 @@ const Admin = () => {
 
   const fetchUsers = async () => {
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/auth/users`, {
+      const data = await fetch(`${import.meta.env.VITE_API_URL}/users`, {
         headers: {
           ...(token && { "Authorization": `Bearer ${token}` })
         },
         credentials: "include", // Send cookies for authentication
       });
-      const data = await res.json();
-      if (res.ok) {
-        setUsers(data);
-        setFilteredUsers(data);
+      const response = await data.json();
+      if (data.ok) {
+        setUsers(response.data);
+        setFilteredUsers(response.data);
       } else {
-        console.error(data.error);
+        console.error(response.error || response.message);
       }
     } catch (err) {
       console.error("Error fetching users", err);
@@ -47,32 +48,19 @@ const Admin = () => {
     });
   };
 
-  const handleUpdate = async () => {
+  const handleSave = async () => {
+    setLoading(true);
     try {
-      const res = await fetch(
-        `${import.meta.env.VITE_API_URL}/auth/update-user`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            ...(token && { "Authorization": `Bearer ${token}` })
-          },
-          credentials: "include", // Send cookies for authentication
-          body: JSON.stringify({
-            email: editingUser,
-            role: formData.role,
-            skills: formData.skills
-              .split(",")
-              .map((skill) => skill.trim())
-              .filter(Boolean),
-          }),
-        }
-      );
+      // First update role if changed
+      const originalUser = users.find(u => u.email === editingUser);
+      if (originalUser && originalUser.role !== formData.role) {
+        await updateRole(editingUser!, formData.role);
+      }
 
-      const data = await res.json();
-      if (!res.ok) {
-        console.error(data.error || "Failed to update user");
-        return;
+      // Then update skills if changed
+      const originalSkills = originalUser?.skills?.join(", ") || "";
+      if (originalSkills !== formData.skills) {
+        await updateSkills(editingUser!, formData.skills);
       }
 
       setEditingUser(null);
@@ -80,7 +68,63 @@ const Admin = () => {
       fetchUsers();
     } catch (err) {
       console.error("Update failed", err);
+    } finally {
+      setLoading(false);
     }
+  };
+
+  const updateRole = async (userId: string, role: string) => {
+    const res = await fetch(
+      `${import.meta.env.VITE_API_URL}/api/users/role`,
+      {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token && { "Authorization": `Bearer ${token}` })
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          userId,
+          role
+        }),
+      }
+    );
+
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.error || data.message || "Failed to update role");
+    }
+    return data;
+  };
+
+  const updateSkills = async (email: string, skillsString: string) => {
+    const skills = skillsString
+      .split(",")
+      .map((skill) => skill.trim())
+      .filter(Boolean);
+
+    if (skills.length === 0) return true;
+
+    const res = await fetch(
+      `${import.meta.env.VITE_API_URL}/api/users/profile`,
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token && { "Authorization": `Bearer ${token}` })
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          skills
+        }),
+      }
+    );
+
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.error || data.message || "Failed to update skills");
+    }
+    return data;
   };
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -146,13 +190,15 @@ const Admin = () => {
               <div className="flex gap-2">
                 <button
                   className="btn btn-success btn-sm"
-                  onClick={handleUpdate}
+                  onClick={handleSave}
+                  disabled={loading}
                 >
-                  Save
+                  {loading ? "Saving..." : "Save"}
                 </button>
                 <button
                   className="btn btn-ghost btn-sm"
                   onClick={() => setEditingUser(null)}
+                  disabled={loading}
                 >
                   Cancel
                 </button>

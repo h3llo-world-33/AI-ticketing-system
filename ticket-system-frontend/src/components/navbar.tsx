@@ -4,7 +4,7 @@ import { verifyAuth, logout as logoutUser } from "../utils/auth";
 import { useAuthStore } from "../store";
 
 export default function Navbar() {
-  const { user, isAuthenticated, setAuth } = useAuthStore();
+  const { user, isAuthenticated, setAuth, logout } = useAuthStore();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -23,7 +23,7 @@ export default function Navbar() {
     try {
       const success = await logoutUser();
       if (success) {
-        // logout();
+        logout();
         navigate("/login");
       }
     } catch (error) {
@@ -50,7 +50,7 @@ export default function Navbar() {
           </>
         ) : (
           <>
-            <p>Hi, {user?.email}</p>
+            {user?.name && <p>Hi, {user?.name}</p>}
             {user && user?.role === "admin" ? (
               <Link to="/admin" className="btn btn-sm">
                 Admin
