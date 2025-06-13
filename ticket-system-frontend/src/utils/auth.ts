@@ -1,4 +1,4 @@
-import type { User } from "../types";
+import type { User, UserProfileResponse } from "../types";
 import { useAuthStore } from "../store";
 
 /**
@@ -32,6 +32,37 @@ export const verifyAuth = async (): Promise<{authenticated: boolean, user: User 
   } catch (err) {
     console.error("Auth verification failed:", err);
     return { authenticated: false, user: null };
+  }
+};
+
+/**
+ * Get user profile by ID
+ */
+export const getUserProfile = async (userId: string): Promise<User | null> => {
+  try {
+    const { token } = useAuthStore.getState();
+    
+    const res = await fetch(`${import.meta.env.VITE_API_URL}/users/profile/${userId}`, {
+      headers: {
+        ...(token && { "Authorization": `Bearer ${token}` })
+      },
+      credentials: "include",
+    });
+    
+    if (!res.ok) {
+      throw new Error(`Failed to fetch profile: ${res.status}`);
+    }
+    
+    const data: UserProfileResponse = await res.json();
+    
+    if (data.success && data.data) {
+      return data.data;
+    }
+    
+    return null;
+  } catch (err) {
+    console.error("Error fetching user profile:", err);
+    return null;
   }
 };
 

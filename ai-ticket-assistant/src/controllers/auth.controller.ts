@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import jwt from "jsonwebtoken";
+import { JwtPayload } from "../utils/jwt";
 import * as userService from "../services/user.service";
 import { LoginRequestDTO, LoginResponseDTO, SignupRequestDTO, SignupResponseDTO } from "../dtos/auth.dto";
 
@@ -82,7 +83,7 @@ export const logout = async (_req: Request, res: Response) => {
 };
 
 
-export const verifyAuthenticated = (req: Request, res: Response) => {
+export const verifyAuthenticated = async (req: Request, res: Response) => {
   const token = req.cookies.token;
   if (!token) {
     res.status(401).json({ authenticated: false });
@@ -90,8 +91,18 @@ export const verifyAuthenticated = (req: Request, res: Response) => {
   }
 
   try {
-    const user = jwt.verify(token, process.env.JWT_SECRET!);
-    res.status(200).json({ authenticated: true, user });
+    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as JwtPayload;
+
+    // Get complete user data from database
+    const userData = await userService.getUserById(decoded.id);
+
+    res.status(200).json({
+      authenticated: true,
+      user: {
+        ...userData,
+        id: decoded.id // Ensure id is included for compatibility
+      }
+    });
   } catch (err) {
     res.status(401).json({ authenticated: false });
   }

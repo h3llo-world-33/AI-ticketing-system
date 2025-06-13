@@ -148,6 +148,39 @@ export const updateUserRole = async (
 
 
 // Controller for admin to update user skills
+export const getUserProfile = async (
+  req: Request,
+  res: Response<ResponseDTO>
+) => {
+  try {
+    const { id } = req.params;
+    const { user } = req;
+    
+    // Only allow users to access their own profile or admins to access any profile
+    if (!user?.id || (user.id !== id && user.role !== UserRole.ADMIN)) {
+      res.status(403).json({
+        success: false,
+        message: "Forbidden: You don't have permission to access this profile"
+      });
+      return;
+    }
+
+    const userData = await userService.getUserById(id);
+    
+    res.status(200).json({
+      success: true,
+      message: "User profile retrieved successfully",
+      data: userData
+    });
+  } catch (error: any) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to retrieve user profile",
+      error: error.message,
+    });
+  }
+};
+
 export const updateUserSkills = async (
   req: Request,
   res: Response<ResponseDTO>

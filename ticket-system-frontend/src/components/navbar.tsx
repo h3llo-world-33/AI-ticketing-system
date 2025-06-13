@@ -42,7 +42,7 @@ export default function Navbar() {
     <div className="navbar bg-base-200">
       <div className="flex-1">
         <Link to="/" className="btn btn-ghost text-xl">
-          Ticket AI
+          AI Ticket
         </Link>
       </div>
       <div className="flex gap-2">
@@ -57,7 +57,11 @@ export default function Navbar() {
           </>
         ) : (
           <>
-            {user?.name && <p>Hi, {user?.name}</p>}
+            {user?.name && (
+              <Link to="/profile" className="text-primary hover:underline">
+                Hi, {user?.name}
+              </Link>
+            )}
             {user && user?.role === "admin" ? (
               <Link to="/admin" className="btn btn-sm">
                 Admin

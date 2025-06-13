@@ -131,6 +131,21 @@ export const updateSkills = async (userId: string, skills: string[]) => {
 };
 
 
+export const getUserById = async (userId: string) => {
+  const user = await User.findById(userId).select("-password");
+  if (!user) throw new Error("User not found");
+  
+  return {
+    _id: user._id,
+    name: user.name,
+    email: user.email,
+    role: user.role,
+    skills: user.skills || [],
+    createdAt: user.createdAt,
+    updatedAt: user.updatedAt
+  };
+};
+
 export const updatePassword = async (userId: string, data: UpdatePasswordDTO) => {
   const { currentPassword, newPassword } = data;
 

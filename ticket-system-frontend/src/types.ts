@@ -44,6 +44,12 @@ export interface SignupForm {
   password: string;
 }
 
+// Profile related types
+export interface ProfileUpdateForm {
+  name: string;
+  skills: string;
+}
+
 // API response types
 export interface TicketsResponse {
   tickets: Ticket[];
@@ -53,4 +59,10 @@ export interface TicketsResponse {
 export interface TicketResponse {
   ticket: Ticket;
   message?: string;
+}
+
+export interface UserProfileResponse {
+  success: boolean;
+  message: string;
+  data?: User;
 }

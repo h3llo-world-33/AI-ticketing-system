@@ -9,11 +9,9 @@ import TicketDetails from './pages/ticket'
 import Login from './pages/login'
 import Signup from './pages/signup'
 import Admin from './pages/admin'
+import Profile from './pages/profile'
 import Navbar from './components/navbar'
-// import { useAuthStore } from './store'
 
-// Rehydrate Zustand from localStorage before rendering
-// useAuthStore.getState().rehydrate();
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
@@ -43,6 +41,16 @@ createRoot(document.getElementById('root')!).render(
         <Route path='/admin' element={
           <CheckAuth protectedRoute={true}>
             <Admin />
+          </CheckAuth>
+        } />
+        <Route path='/profile' element={
+          <CheckAuth protectedRoute={true}>
+            <Profile />
+          </CheckAuth>
+        } />
+        <Route path='/profile/:id' element={
+          <CheckAuth protectedRoute={true}>
+            <Profile />
           </CheckAuth>
         } />
       </Routes>
