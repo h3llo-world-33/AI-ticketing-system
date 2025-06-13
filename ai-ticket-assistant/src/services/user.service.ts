@@ -67,6 +67,7 @@ export const getAllUsers = async () => {
 
   // Map to a consistent format with only necessary fields
   return users.map(user => ({
+    _id: user._id,
     name: user.name,
     email: user.email,
     role: user.role,

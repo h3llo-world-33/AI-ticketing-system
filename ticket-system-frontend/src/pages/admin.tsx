@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
 import type { User } from "../types";
 import { useAuthStore } from "../store";
 
@@ -14,7 +13,8 @@ const Admin = () => {
   const [editingUser, setEditingUser] = useState<string | null>(null);
   const [formData, setFormData] = useState<UserFormData>({ role: "", skills: "" });
   const [searchQuery, setSearchQuery] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [isFetching, setIsFetching] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const { token } = useAuthStore();
 
   useEffect(() => {
@@ -24,28 +24,29 @@ const Admin = () => {
   }, [token]);
 
   const fetchUsers = async () => {
-    setLoading(true);
+    setIsFetching(true);
     try {
-      // Fix API endpoint
       const res = await fetch(`${import.meta.env.VITE_API_URL}/users`, {
         headers: {
           ...(token && { "Authorization": `Bearer ${token}` })
         },
         credentials: "include",
       });
-      const response = await res.json();
-      if (res.ok) {
-        const userData = response.data || [];
-        setUsers(userData);
-        setFilteredUsers(userData);
-      } else {
-        alert(response.error || response.message || "Failed to fetch users");
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || errorData.message || `Failed with status: ${res.status}`);
       }
+
+      const response = await res.json();
+      const userData = response.data || [];
+      setUsers(userData);
+      setFilteredUsers(userData);
     } catch (err) {
-      alert("Error connecting to server");
       console.error("Error fetching users", err);
+      alert(err instanceof Error ? err.message : "Error connecting to server");
     } finally {
-      setLoading(false);
+      setIsFetching(false);
     }
   };
 
@@ -58,11 +59,16 @@ const Admin = () => {
   };
 
   const handleSave = async () => {
-    setLoading(true);
+    setIsSaving(true);
     try {
       const originalUser = users.find(u => u._id === editingUser);
       if (!originalUser) {
         throw new Error("User not found");
+      }
+
+      // Validate role
+      if (!["user", "admin", "moderator"].includes(formData.role)) {
+        throw new Error("Invalid role selected");
       }
 
       // Update role if changed
@@ -106,7 +112,7 @@ const Admin = () => {
     } catch (err: any) {
       alert("Failed to update user: " + (err.message || "Unknown error"));
     } finally {
-      setLoading(false);
+      setIsSaving(false);
     }
   };
 
@@ -173,6 +179,11 @@ const Admin = () => {
     );
   };
 
+  const handleCancel = () => {
+    setEditingUser(null);
+    setFormData({ role: "", skills: "" });
+  };
+
   return (
     <div className="max-w-4xl mx-auto mt-10 sm:px-6 px-3">
       <h1 className="text-2xl font-bold mb-6">Admin Panel - Manage Users</h1>
@@ -188,17 +199,17 @@ const Admin = () => {
         <button
           className="btn btn-outline"
           onClick={fetchUsers}
-          disabled={loading}
+          disabled={isFetching}
         >
-          Refresh
+          {isFetching ? "Loading..." : "Refresh"}
         </button>
       </div>
 
-      {loading && !editingUser && (
+      {isFetching && (
         <div className="text-center p-4">Loading users...</div>
       )}
 
-      {!loading && filteredUsers.length === 0 && (
+      {!isFetching && filteredUsers.length === 0 && (
         <div className="text-center p-4">No users found</div>
       )}
 
@@ -208,16 +219,10 @@ const Admin = () => {
           className="bg-base-100 shadow rounded p-4 mb-4 border"
         >
           <p>
+            <strong>Name:</strong> {user.name}
+          </p>
+          <p>
             <strong>Email:</strong> {user.email}
-          </p>
-          <p>
-            <strong>Current Role:</strong> {user.role}
-          </p>
-          <p>
-            <strong>Skills:</strong>{" "}
-            {user.skills && user.skills.length > 0
-              ? user.skills.join(", ")
-              : "N/A"}
           </p>
 
           {editingUser === user._id ? (
@@ -248,26 +253,37 @@ const Admin = () => {
                 <button
                   className="btn btn-success btn-sm"
                   onClick={handleSave}
-                  disabled={loading}
+                  disabled={isSaving}
                 >
-                  {loading ? "Saving..." : "Save"}
+                  {isSaving ? "Saving..." : "Save"}
                 </button>
                 <button
                   className="btn btn-ghost btn-sm"
-                  onClick={() => setEditingUser(null)}
-                  disabled={loading}
+                  onClick={handleCancel}
+                  disabled={isSaving}
                 >
                   Cancel
                 </button>
               </div>
             </div>
           ) : (
-            <button
-              className="btn btn-primary btn-sm mt-2"
-              onClick={() => handleEditClick(user)}
-            >
-              Edit
-            </button>
+            <>
+              <p>
+                <strong>Current Role:</strong> {user.role}
+              </p>
+              <p>
+                <strong>Skills:</strong>{" "}
+                {user.skills && user.skills.length > 0
+                  ? user.skills.join(", ")
+                  : "N/A"}
+              </p>
+              <button
+                className="btn btn-primary btn-sm mt-2"
+                onClick={() => handleEditClick(user)}
+              >
+                Edit
+              </button>
+            </>
           )}
         </div>
       ))}
