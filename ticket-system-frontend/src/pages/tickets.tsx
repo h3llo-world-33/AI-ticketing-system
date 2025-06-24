@@ -56,7 +56,12 @@ const Tickets = () => {
 
       if (res.ok) {
         setForm({ title: "", description: "" });
-        fetchTickets(); // Refresh list
+        // Add the new ticket to the list immediately with the returned data
+        if (data.ticket) {
+          setTickets(prevTickets => [data.ticket, ...prevTickets]);
+        } else {
+          fetchTickets(); // Fallback to refresh list if ticket not returned
+        }
       } else {
         alert(data.message || "Ticket creation failed");
       }
@@ -100,7 +105,13 @@ const Tickets = () => {
           <Link
             key={ticket._id}
             className="card shadow-md p-4 bg-gray-800"
-            to={`/tickets/${ticket.ticketNumber}`}
+            to={ticket.ticketNumber ? `/tickets/${ticket.ticketNumber}` : "#"}
+            onClick={(e) => {
+              if (!ticket.ticketNumber) {
+                e.preventDefault();
+                alert("Ticket is still being processed. Please try again in a moment.");
+              }
+            }}
           >
             <h3 className="font-bold text-lg">{ticket.title}</h3>
             <p className="text-sm">{ticket.description}</p>
