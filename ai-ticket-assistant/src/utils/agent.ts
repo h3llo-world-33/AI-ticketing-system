@@ -63,7 +63,7 @@ Ticket information:
     // console.log("AI raw response:", response);
 
     const outputItem = response?.output?.[0];
-    const raw = outputItem?.content;
+    const raw = outputItem && 'content' in outputItem ? outputItem.content : undefined;
 
     if (!raw || typeof raw !== "string") {
       throw new Error("AI did not return valid string output.");
