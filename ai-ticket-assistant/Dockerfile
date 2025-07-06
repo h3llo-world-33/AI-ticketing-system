@@ -1,63 +1,35 @@
-# Multi-stage build for production optimization
-FROM node:22.11.0-alpine AS builder
+# Backend Dockerfile
+FROM node:18-alpine
 
 # Set working directory
 WORKDIR /app
 
 # Copy package files
 COPY package*.json ./
-COPY tsconfig.json ./
 
-# Install ALL dependencies (including devDependencies for building)
-RUN npm ci
+# Install dependencies
+RUN npm ci --only=production
+
+# Install tsx globally for running TypeScript directly
+RUN npm install -g tsx
 
 # Copy source code
-COPY src ./src
+COPY . .
 
-# Build TypeScript to JavaScript
-RUN npm run build
+# Create non-root user
+RUN addgroup -g 1001 -S nodejs
+RUN adduser -S nodejs -u 1001
 
-# Production stage
-FROM node:22.11.0-alpine AS production
+# Change ownership of app directory
+RUN chown -R nodejs:nodejs /app
+USER nodejs
 
-# Create non-root user for security
-RUN addgroup -g 1001 -S nodejs && \
-    adduser -S appuser -u 1001
-
-# Set working directory
-WORKDIR /app
-
-# Copy package files
-COPY package*.json ./
-
-# Install only production dependencies
-RUN npm ci --only=production && \
-    npm cache clean --force
-
-# Copy built application from builder stage
-COPY --from=builder /app/dist ./dist
-
-# Copy environment file
-COPY .env .env
-
-# Copy any additional assets if needed
-# COPY assets ./assets
-
-# Change ownership to non-root user
-RUN chown -R appuser:nodejs /app
-USER appuser
-
-# Expose port (adjust if your app uses different port)
+# Expose port
 EXPOSE 5000
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD node -e "const http = require('http'); \
-    const req = http.request('http://localhost:5000/health', (res) => { \
-      process.exit(res.statusCode === 200 ? 0 : 1); \
-    }); \
-    req.on('error', () => process.exit(1)); \
-    req.end();"
+  CMD curl -f http://localhost:5000/health || exit 1
 
-# Start the application
-CMD ["node", "dist/index.js"]
+# Start the application using tsx
+CMD ["tsx", "src/index.ts"]

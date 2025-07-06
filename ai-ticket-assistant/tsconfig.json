@@ -4,28 +4,25 @@
     "target": "es2020",
     
     /* Modules */
-    "module": "ESNext",
-    "moduleResolution": "node",
+    "module": "commonjs",
     "rootDir": "./src",
-    "outDir": "./dist",
+    "typeRoots": ["./node_modules/@types", "./src/types"],
+    "resolveJsonModule": true,
     
-    /* Type Checking */
-    "strict": true,
-    "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
+    /* Emit */
+    "outDir": "./dist",
     
     /* Interop Constraints */
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
+    "forceConsistentCasingInFileNames": true,
     
-    /* Additional */
-    "resolveJsonModule": true,
-    "typeRoots": ["./node_modules/@types", "./src/types"],
+    /* Type Checking */
+    "strict": true,
     
-    /* Emit */
-    "declaration": true,
-    "sourceMap": true
+    /* Completeness */
+    "skipLibCheck": true
   },
-  "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist"]
+  "include": ["src"],
+  "exclude": ["node_modules"]
 }

@@ -83,7 +83,13 @@ export const logout = async (): Promise<boolean> => {
       credentials: "include", // Important for cookie operations
     });
 
-    // Always clear local state, even if the API call fails
+    // Check if logout was successful
+    if (!response.ok) {
+      console.error('Server logout failed:', response.status);
+      // Still clear local state even if server logout fails
+    }
+
+    // Always clear local state
     useAuthStore.getState().logout();
     return true;
   } catch (err) {

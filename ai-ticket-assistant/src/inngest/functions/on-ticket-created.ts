@@ -43,7 +43,7 @@ export const onTicketCreated = inngest.createFunction(
             priority: Object.values(TicketPriority).includes(aiResponse.priority)
               ? aiResponse.priority : TicketPriority.MEDIUM,
             helpfulNotes: aiResponse.helpfulNotes,
-            status: TicketStatus.IN_PROGRESS,
+            status: TicketStatus.DONE,
             relatedSkills: aiResponse.relatedSkills,
           });
 

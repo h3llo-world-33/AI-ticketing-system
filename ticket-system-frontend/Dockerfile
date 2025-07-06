@@ -1,35 +1,48 @@
-# Backend Dockerfile
-FROM node:18-alpine
+# Frontend Dockerfile - Multi-stage build
+# Stage 1: Build the React app
+FROM node:18-alpine AS builder
 
-# Set working directory
 WORKDIR /app
 
 # Copy package files
 COPY package*.json ./
 
 # Install dependencies
-RUN npm ci --only=production
-
-# Install tsx globally for running TypeScript directly
-RUN npm install -g tsx
+RUN npm ci
 
 # Copy source code
 COPY . .
 
-# Create non-root user
-RUN addgroup -g 1001 -S nodejs
-RUN adduser -S nodejs -u 1001
+# Build the application
+RUN npm run build
 
-# Change ownership of app directory
-RUN chown -R nodejs:nodejs /app
-USER nodejs
+# Stage 2: Serve with nginx
+FROM nginx:alpine
+
+# Copy built app from builder stage
+COPY --from=builder /app/dist /usr/share/nginx/html
+
+# Copy nginx configuration
+COPY nginx.conf /etc/nginx/nginx.conf
+
+# Change ownership of nginx directories (use existing nginx user)
+RUN chown -R nginx:nginx /var/cache/nginx && \
+    chown -R nginx:nginx /var/log/nginx && \
+    chown -R nginx:nginx /etc/nginx/conf.d
+
+# Touch nginx.pid and change ownership
+RUN touch /var/run/nginx.pid && \
+    chown -R nginx:nginx /var/run/nginx.pid
+
+# Switch to non-root user (use existing nginx user)
+USER nginx
 
 # Expose port
-EXPOSE 5000
+EXPOSE 3000
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD curl -f http://localhost:5000/health || exit 1
+  CMD curl -f http://localhost:3000 || exit 1
 
-# Start the application using tsx
-CMD ["tsx", "src/index.ts"]
+# Start nginx
+CMD ["nginx", "-g", "daemon off;"]

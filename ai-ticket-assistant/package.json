@@ -2,12 +2,10 @@
   "name": "ai-ticket-assistant",
   "version": "1.0.0",
   "description": "Backend for AI Ticketing System",
-  "main": "dist/index.js",
+  "main": "index.js",
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/index.ts",
-    "build": "tsc",
-    "start": "node dist/index.js",
     "inngest-dev": "npx inngest-cli@latest dev"
   },
   "keywords": [],
