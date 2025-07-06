@@ -5,7 +5,7 @@ WORKDIR /app
 
 # Accept build arguments
 ARG VITE_API_URL
-ENV VITE_API_URL=$VITE_API_URL
+ENV VITE_API_URL=http://54.164.113.75:5000/api
 
 # Copy package files
 COPY package*.json ./
