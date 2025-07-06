@@ -11,30 +11,31 @@ import { useAuthStore } from "../store";
 export const verifyAuth = async (): Promise<{authenticated: boolean, user: User | null}> => {
   try {
     const { token } = useAuthStore.getState();
-
     const res = await fetch(`${import.meta.env.VITE_API_URL}/auth/verify`, {
       method: "GET",
       headers: {
         ...(token && { "Authorization": `Bearer ${token}` })
       },
-      credentials: "include", // Send cookies
+      credentials: "include",
     });
-
     const data = await res.json();
-
+    
     if (data.authenticated && data.user) {
-      // Update auth store with latest user data
       useAuthStore.getState().setAuth(data.user, data.user.token || token);
       return { authenticated: true, user: data.user };
     }
-
+    
+    // CRITICAL FIX: Use logout() to clear the store when authentication fails
+    useAuthStore.getState().logout();
     return { authenticated: false, user: null };
+    
   } catch (err) {
     console.error("Auth verification failed:", err);
+    // ALSO clear store on network/server errors
+    useAuthStore.getState().logout();
     return { authenticated: false, user: null };
   }
 };
-
 /**
  * Get user profile by ID
  */
