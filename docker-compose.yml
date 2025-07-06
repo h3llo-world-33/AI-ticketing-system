@@ -11,10 +11,11 @@ services:
     environment:
       - NODE_ENV=production
       - PORT=5000
-      # AWS region for Secrets Manager (IAM role will provide credentials)
+      - APP_URL=${APP_URL}
       - AWS_REGION=${AWS_REGION:-us-east-1}
-      # App configuration
-      - APP_URL=${APP_URL:-http://localhost:3000}
+      # These will be loaded from AWS Secrets Manager by your backend code
+      # Only set these if you want to override the secrets manager values
+      - CORS_ORIGIN=${CORS_ORIGIN}
     networks:
       - ai-ticket-network
     restart: unless-stopped
