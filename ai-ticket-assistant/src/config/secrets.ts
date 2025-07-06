@@ -11,6 +11,7 @@ interface SecretValue {
 export interface SecretsConfig {
   mongoUri?: string;
   jwtSecret?: string;
+  smtpUser?: string;
   smtpPass?: string;
   geminiApiKey?: string;
   inngestEventKey?: string;
@@ -58,10 +59,11 @@ export async function loadSecrets(): Promise<SecretsConfig> {
     
     // Load email secrets
     const emailSecret = await getSecret("ai-ticket/email");
-    if (emailSecret?.SMTP_PASS) {
-      secrets.smtpPass = emailSecret.SMTP_PASS;
-      console.log("✅ Email secrets loaded");
-    }
+if (emailSecret?.SMTP_PASS) {
+  secrets.smtpUser = emailSecret.SMTP_USER;  // ✅ Add this line
+  secrets.smtpPass = emailSecret.SMTP_PASS;
+  console.log("✅ Email secrets loaded");
+}
     
     // Load AI service secrets
     const aiSecret = await getSecret("ai-ticket/ai-services");

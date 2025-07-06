@@ -38,7 +38,7 @@ export function createConfig(secrets: SecretsConfig = {}): Config {
     email: {
       host: process.env.SMTP_HOST || "smtp.gmail.com",
       port: Number(process.env.SMTP_PORT) || 587,
-      user: process.env.SMTP_USER || "",
+      user: process.env.SMTP_USER || "devop.helloworld@gmail.com",
       pass: secrets.smtpPass || process.env.SMTP_PASS || "",
     },
     auth: {
