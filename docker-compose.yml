@@ -1,5 +1,4 @@
 version: '3.8'
-
 services:
   backend:
     build:
@@ -11,11 +10,11 @@ services:
     environment:
       - NODE_ENV=production
       - PORT=5000
-      - APP_URL=${APP_URL}
+      - APP_URL=http://54.164.113.75:3000
       - AWS_REGION=${AWS_REGION:-us-east-1}
       # These will be loaded from AWS Secrets Manager by your backend code
       # Only set these if you want to override the secrets manager values
-      - CORS_ORIGIN=${CORS_ORIGIN}
+      - CORS_ORIGIN=http://54.164.113.75:3000
     networks:
       - ai-ticket-network
     restart: unless-stopped
@@ -25,7 +24,6 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
-
   frontend:
     build:
       context: ./ticket-system-frontend
@@ -47,9 +45,7 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
-
 volumes: {}
-
 networks:
   ai-ticket-network:
     driver: bridge
