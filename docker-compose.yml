@@ -31,12 +31,12 @@ services:
       context: ./ticket-system-frontend
       dockerfile: Dockerfile
       args:
-        - VITE_API_URL=http://54.164.113.75:5000
+        - VITE_API_URL=http://54.164.113.75:5000/api
     container_name: ai-ticket-frontend
     ports:
       - "3000:3000"
     environment:
-      - VITE_API_URL=http://54.164.113.75:5000
+      - VITE_API_URL=http://54.164.113.75:5000/api
     networks:
       - ai-ticket-network
     restart: unless-stopped
