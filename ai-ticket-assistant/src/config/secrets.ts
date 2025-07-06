@@ -54,6 +54,7 @@ export async function loadSecrets(): Promise<SecretsConfig> {
     const authSecret = await getSecret("ai-ticket/auth");
     if (authSecret?.JWT_SECRET) {
       secrets.jwtSecret = authSecret.JWT_SECRET;
+      process.env.JWT_SECRET = authSecret.JWT_SECRET;  // ← ADD THIS LINE
       console.log("✅ Auth secrets loaded");
     }
     
