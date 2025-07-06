@@ -1,8 +1,15 @@
 import mongoose from "mongoose";
+import { getDbConfig } from "./index";
 
 export const connectDB = async () => {
   try {
-    await mongoose.connect(process.env.MONGO_URI!);
+    const dbConfig = getDbConfig();
+    
+    if (!dbConfig.mongoUri) {
+      throw new Error("MongoDB URI is not configured");
+    }
+    
+    await mongoose.connect(dbConfig.mongoUri);
     console.log("✅ MongoDB connected successfully");
   } catch (err) {
     console.error("❌ MongoDB connection error:", err);
