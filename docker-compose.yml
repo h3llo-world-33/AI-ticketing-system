@@ -11,21 +11,13 @@ services:
     environment:
       - NODE_ENV=production
       - PORT=5000
-      - MONGO_URI=${MONGO_URI}
-      - JWT_SECRET=${JWT_SECRET}
-      - MAILTRAP_SMTP_HOST=${SMTP_HOST}
-      - MAILTRAP_SMTP_PORT=${SMTP_PORT}
-      - MAILTRAP_SMTP_USER=${SMTP_USER}
-      - MAILTRAP_SMTP_PASS=${SMTP_PASS}
-      - GEMINI_API_KEY=${GEMINI_API_KEY}
-      - INNGEST_EVENT_KEY=${INNGEST_EVENT_KEY}
-      - INNGEST_SIGNING_KEY=${INNGEST_SIGNING_KEY}
-      - APP_URL=${APP_URL}
+      # AWS region for Secrets Manager (IAM role will provide credentials)
+      - AWS_REGION=${AWS_REGION:-us-east-1}
+      # App configuration
+      - APP_URL=${APP_URL:-http://localhost:3000}
     networks:
       - ai-ticket-network
     restart: unless-stopped
-    depends_on:
-      - mongodb
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
       interval: 30s
@@ -50,52 +42,12 @@ services:
     depends_on:
       - backend
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
       interval: 30s
       timeout: 10s
       retries: 3
 
-  mongodb:
-    image: mongo:7.0
-    container_name: ai-ticket-mongodb
-    ports:
-      - "27017:27017"
-    environment:
-      - MONGO_INITDB_ROOT_USERNAME=${MONGO_ROOT_USERNAME}
-      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_ROOT_PASSWORD}
-      - MONGO_INITDB_DATABASE=${MONGO_DATABASE}
-    volumes:
-      - mongodb_data:/data/db
-      - ./mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
-    networks:
-      - ai-ticket-network
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
-
-  redis:
-    image: redis:7-alpine
-    container_name: ai-ticket-redis
-    ports:
-      - "6379:6379"
-    volumes:
-      - redis_data:/data
-    networks:
-      - ai-ticket-network
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-
-volumes:
-  mongodb_data:
-  redis_data:
+volumes: {}
 
 networks:
   ai-ticket-network:
