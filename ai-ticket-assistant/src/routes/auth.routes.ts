@@ -13,6 +13,6 @@ router.post("/login", login);
 // Logout - Protected
 router.post("/logout", verifyToken, logout);
 
-router.get("/verify", verifyAuthenticated);
+router.get("/verify", verifyToken, verifyAuthenticated);
 
 export default router;
