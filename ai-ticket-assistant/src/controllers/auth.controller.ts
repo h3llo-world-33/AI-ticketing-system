@@ -84,7 +84,16 @@ export const logout = async (_req: Request, res: Response) => {
 
 
 export const verifyAuthenticated = async (req: Request, res: Response) => {
-  const token = req.cookies.token;
+  // Check both cookie and Authorization header
+  let token = req.cookies.token;
+  
+  if (!token) {
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith("Bearer ")) {
+      token = authHeader.split(" ")[1];
+    }
+  }
+
   if (!token) {
     res.status(401).json({ authenticated: false });
     return;
@@ -92,15 +101,13 @@ export const verifyAuthenticated = async (req: Request, res: Response) => {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET!) as JwtPayload;
-
-    // Get complete user data from database
     const userData = await userService.getUserById(decoded.id);
-
+    
     res.status(200).json({
       authenticated: true,
       user: {
         ...userData,
-        id: decoded.id // Ensure id is included for compatibility
+        id: decoded.id
       }
     });
   } catch (err) {
