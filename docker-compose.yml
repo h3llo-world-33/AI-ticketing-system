@@ -15,6 +15,7 @@ services:
       # These will be loaded from AWS Secrets Manager by your backend code
       # Only set these if you want to override the secrets manager values
       - CORS_ORIGIN=http://54.164.113.75:3000
+      - JWT_SECRET=AI-Ticketing-2024-Super-Secret-Key-9x8v7b6n5m4j3h2g1f0d9s8a7p6o5i4u3y2t1r0e9w8q7
     networks:
       - ai-ticket-network
     restart: unless-stopped
