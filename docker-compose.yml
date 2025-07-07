@@ -15,8 +15,7 @@ services:
       # These will be loaded from AWS Secrets Manager by your backend code
       # Only set these if you want to override the secrets manager values
       - CORS_ORIGIN=http://54.164.113.75:3000
-    volumes:
-      - ~/.aws:/root/.aws:ro
+      - JWT_SECRET=${JWT_SECRET}
     networks:
       - ai-ticket-network
     restart: unless-stopped
